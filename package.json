@@ -4,6 +4,7 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
+		"local": "vite dev",
 		"dev": "vite dev",
 		"build": "vite build",
 		"preview": "yarn run build && wrangler pages dev",

@@ -1,0 +1,71 @@
+#node
+node_modules
+
+#serverless framework
+.serverless
+jspm_packages
+
+#cloudflare
+.wrangler
+.dev.vars
+
+#nuxt
+.output
+.data
+.nuxt
+.nitro
+.cache
+dist
+size
+stats*.html
+
+#secrets
+.env
+.env.*
+*.env
+*.vars
+*.vars.*
+env.js
+card.js
+
+#lock files; forgetting to delete one on a new os would really mess up the build
+package-lock.json
+yarn.lock
+
+#logs and diffs
+logs
+*.log
+*.diff
+diff*.txt
+
+#miscellaneous
+.DS_Store
+.fleet
+.idea
+
+#and below from sveltekit scaffolding
+node_modules
+
+# Output
+.output
+.vercel
+.netlify
+.wrangler
+/.svelte-kit
+/build
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+.dev.vars*

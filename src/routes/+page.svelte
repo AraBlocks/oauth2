@@ -3,3 +3,5 @@
 <p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
 <p>Preparing this minimal site for <i>oauth2.ara.team</i></p>
 <p>List configured OAuth providers at <a href="/auth/providers">/auth/providers</a></p>
+<p><a href="/auth/signin/google">Continue with Google</a></p>
+<p><a href="/auth/signin/twitter">Continue with Twitter</a></p>

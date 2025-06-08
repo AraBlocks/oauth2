@@ -22,6 +22,12 @@ export const {handle, signIn, signOut} = SvelteKitAuth(async (event) => {
 		],
 		secret: event.platform.env.AUTH_SECRET,
 		trustHost: true,
+		callbacks: {
+			async signIn({account, profile}) {
+				console.log('✅ Proof received for:', profile?.email, 'via', account.provider)//you can store this or pass it to internal systems
+				return true//allow flow to continue
+			},
+		},
 	}
 	return authOptions
 })

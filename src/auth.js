@@ -1,9 +1,6 @@
-//this implementation is [@auth/sveltekit] in [SvelteKit] deploying to [oauth2.ara.team] ~ works but downloads too low
+//in the [oauth2.ara.team] [SvelteKit] repo using [@auth/sveltekit], this is the file ./src/auth.js
 
-//this file is ./src/auth.js
-import {SvelteKitAuth} from '@auth/sveltekit'//using Auth.js, formerly NextAuth, 1.4 million weekly downloads, with SvelteKit, as Auth's Nuxt integration isn't finished
-
-//Auth has submodules that know the details about how popular providers speak OAuth
+import {SvelteKitAuth} from '@auth/sveltekit'
 import googleProvider  from '@auth/sveltekit/providers/google'
 import twitterProvider from "@auth/sveltekit/providers/twitter"//𝕏, of course, but Auth.js still calls it twitter
 import githubProvider  from '@auth/sveltekit/providers/github'
@@ -13,16 +10,40 @@ import redditProvider  from '@auth/sveltekit/providers/reddit'
 
 export const {handle, signIn, signOut} = SvelteKitAuth(async (event) => {
 
-	//secrets come in async on the event object; locally from .dev.vars and deployed from the Cloudflare dashboard
-	let googleSettings  = {clientId: event.platform.env.AUTH_GOOGLE_ID,  clientSecret: event.platform.env.AUTH_GOOGLE_SECRET}
-	let twitterSettings = {clientId: event.platform.env.AUTH_TWITTER_ID, clientSecret: event.platform.env.AUTH_TWITTER_SECRET}
-	let githubSettings  = {clientId: event.platform.env.AUTH_GITHUB_ID,  clientSecret: event.platform.env.AUTH_GITHUB_SECRET}
-	let discordSettings = {clientId: event.platform.env.AUTH_DISCORD_ID, clientSecret: event.platform.env.AUTH_DISCORD_SECRET}
+	let authOptions = {
+		providers: [
+			googleProvider({clientId: event.platform.env.AUTH_GOOGLE_ID,  clientSecret: event.platform.env.AUTH_GOOGLE_SECRET}),
+			twitterProvider({clientId: event.platform.env.AUTH_TWITTER_ID, clientSecret: event.platform.env.AUTH_TWITTER_SECRET}),
+			githubProvider({clientId: event.platform.env.AUTH_GITHUB_ID,  clientSecret: event.platform.env.AUTH_GITHUB_SECRET}),
+			discordProvider({clientId: event.platform.env.AUTH_DISCORD_ID, clientSecret: event.platform.env.AUTH_DISCORD_SECRET}),
+		],
+		trustHost: true,//trust the incoming request's Host and X-Forwarded-Host headers to work with Cloudflare's reverse proxy
+		callbacks: {
+
+			async signIn({account, profile, user}) {//Auth calls our signIn() method once when the user and Auth have finished successfully with the third-party provider
+
+				console.log('proof has arrived ✉️', JSON.stringify({account, profile, user}, null, 2))//ttd june, stringify to avoid [Object object]
+
+				let proof = ''//todo, we'll bundle and sign the proof of identity to send it back to the main site, which has the database connection
+				return 'https://ara.team/oauth-done?proof='+proof//instead of a separate redirect() method alongside signIn(), which should do the same thing
+			},
+		},
+		session: {
+			maxAge: 900,//15 minutes in seconds; intending us to identify our user with this cookie, Auth's default is 30 days
+			updateAge: 0,//tell Auth.js to never refresh this cookie; it will expire naturally shortly
+		},
+		secret: event.platform.env.AUTH_SECRET,//Auth.js needs a random secret we define to sign things; we don't have to rotate it; generate with $ openssl rand -hex 32
+	}
+	return authOptions
+})
+
+/*
+so you don't need any of the below, you do get the raw result in signIn as profile, and the normalized as user!
 
 	//google, https://console.cloud.google.com/apis/credentials
 	//also must verify site ownership, https://search.google.com/search-console/ownership
 	//and google deletes if no activity for 6 months, https://support.google.com/cloud/answer/15549257#unused-client-deletion
-	if (true) googleSettings.profile = (raw) => {//we're replacing Auth.js's response parsing function with our own
+	if (false) googleSettings.profile = (raw) => {//we're replacing Auth.js's response parsing function with our own
 		return {
 			//1 match Auth.js's profile parsing for google
 			id:             raw.sub,//"108691239685192314259"
@@ -42,7 +63,7 @@ export const {handle, signIn, signOut} = SvelteKitAuth(async (event) => {
 	}
 
 	//X, https://developer.x.com/en/portal/projects-and-apps
-	if (true) twitterSettings.profile = (raw) => {
+	if (false) twitterSettings.profile = (raw) => {
 		return {
 			id:    raw.data.id,//"2244994945"
 			name:  raw.data.name,//"Jane Doe"
@@ -88,29 +109,4 @@ export const {handle, signIn, signOut} = SvelteKitAuth(async (event) => {
 			response: raw,
 		}
 	}
-
-	let authOptions = {
-		providers: [
-			googleProvider(googleSettings),
-			twitterProvider(twitterSettings),
-			githubProvider(githubSettings),
-			discordProvider(discordSettings),
-		],
-		trustHost: true,//trust the incoming request's Host and X-Forwarded-Host headers to work with Cloudflare's reverse proxy
-		callbacks: {
-
-			async signIn({account, profile}) {//Auth calls our signIn() method once when the user and Auth have finished successfully with the third-party provider
-
-				console.log('proof has arrived ✉️', JSON.stringify({account, profile}, null, 2))//ttd june, stringify to avoid [Object object]
-
-				return true//allow flow to continue
-			},
-		},
-		session: {
-			maxAge: 900,//15 minutes in seconds; intending us to identify our user with this cookie, Auth's default is 30 days
-			updateAge: 0,//tell Auth.js to never refresh this cookie; it will expire naturally shortly
-		},
-		secret: event.platform.env.AUTH_SECRET,//Auth.js needs a random secret we define to sign things; we don't have to rotate it; generate with $ openssl rand -hex 32
-	}
-	return authOptions
-})
+*/
